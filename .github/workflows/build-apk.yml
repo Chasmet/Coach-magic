@@ -30,13 +30,26 @@ jobs:
         run: npm install
 
       - name: Prepare Android project
-        run: npm run android:init
+        run: |
+          npm run prepare:web
+          npx cap add android
+          npx cap sync android
 
       - name: Build debug APK
-        run: npm run android:build
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-      - name: Upload APK
+      - name: Rename APK clearly
+        run: |
+          mkdir -p apk-output
+          cp android/app/build/outputs/apk/debug/app-debug.apk apk-output/Coach-Magic.apk
+          ls -la apk-output
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Coach-Magic-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: Coach-Magic-APK
+          path: apk-output/Coach-Magic.apk
+          if-no-files-found: error
