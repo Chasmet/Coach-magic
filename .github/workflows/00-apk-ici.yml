@@ -1,0 +1,59 @@
+name: 00 APK ICI - Coach Magic
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  creer-apk:
+    name: TELECHARGER APK ICI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recuperer le projet
+        uses: actions/checkout@v4
+
+      - name: Installer Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer Java Android
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Installer les dependances
+        run: npm install
+
+      - name: Preparer le dossier web
+        run: npm run prepare:web
+
+      - name: Creer le projet Android
+        run: npx cap add android
+
+      - name: Synchroniser Android
+        run: npx cap sync android
+
+      - name: Construire l APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Mettre l APK dans un dossier clair
+        run: |
+          mkdir -p TELECHARGER-APK-ICI
+          cp android/app/build/outputs/apk/debug/app-debug.apk TELECHARGER-APK-ICI/Coach-Magic.apk
+          ls -la TELECHARGER-APK-ICI
+
+      - name: APK A TELECHARGER ICI
+        uses: actions/upload-artifact@v4
+        with:
+          name: APK-A-TELECHARGER-ICI-Coach-Magic
+          path: TELECHARGER-APK-ICI/Coach-Magic.apk
+          if-no-files-found: error
