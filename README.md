@@ -19,14 +19,22 @@ L'application fonctionne sans serveur. Les données sont sauvegardées sur le t�
 - Installation PWA depuis le navigateur.
 - APK Android généré par GitHub Actions.
 
-## APK
+## APK Android
 
-Après chaque push sur `main`, le workflow **Build Android APK** fabrique un APK debug.
+Le workflow à ouvrir est **Build Android APK**.
 
-Chemin de l'artifact dans GitHub Actions :
+Ne pas ouvrir **Deploy GitHub Pages** pour l'APK : ce workflow publie seulement le site web.
 
-`Coach-Magic-debug-apk`
+Quand **Build Android APK** est vert, aller tout en bas dans **Artifacts** puis télécharger :
 
-## GitHub Pages
+`Coach-Magic-APK`
 
-Le workflow **Deploy GitHub Pages** publie l'application web.
+Le fichier à installer dans le ZIP s'appelle :
+
+`Coach-Magic.apk`
+
+## Déclenchement APK
+
+Chaque push sur `main` relance automatiquement le build APK.
+
+Dernier déclenchement forcé : correction interface base / spécificités / ajouts.
