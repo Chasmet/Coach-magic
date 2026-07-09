@@ -1,0 +1,16 @@
+{
+  "name": "coach-magic",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Application mobile Coach Magic compatible PWA et APK Android.",
+  "scripts": {
+    "prepare:web": "node scripts/prepare-web.js",
+    "android:init": "npm run prepare:web && npx cap add android || true && npx cap sync android",
+    "android:build": "cd android && chmod +x gradlew && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1"
+  }
+}
