@@ -1,0 +1,9 @@
+{
+  "appId": "com.chk.coachmagic",
+  "appName": "Coach Magic",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
