@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coach-magic-v5';
+const CACHE_NAME = 'coach-magic-v6';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', event => {
