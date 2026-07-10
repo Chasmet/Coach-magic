@@ -1,4 +1,4 @@
-name: Deploy GitHub Pages
+name: APK + Site - OUVRIR ICI
 
 on:
   workflow_dispatch:
@@ -9,30 +9,71 @@ permissions:
   contents: write
 
 concurrency:
-  group: pages
+  group: pages-and-apk
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build-and-deploy:
+    name: CREER APK ET PUBLIER LE SITE
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Recuperer le projet
         uses: actions/checkout@v4
 
-      - name: Prepare static site
+      - name: Installer Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer Java Android
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Installer les dependances
+        run: npm install
+
+      - name: Preparer les fichiers web
+        run: npm run prepare:web
+
+      - name: Creer le projet Android
+        run: npx cap add android
+
+      - name: Synchroniser Android
+        run: npx cap sync android
+
+      - name: Construire Coach Magic APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Preparer le site et le fichier APK
         run: |
           rm -rf dist
-          mkdir -p dist
+          mkdir -p dist/downloads
           cp index.html dist/index.html
           cp manifest.webmanifest dist/manifest.webmanifest
           cp service-worker.js dist/service-worker.js
           cp icon.svg dist/icon.svg
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/downloads/Coach-Magic.apk
           touch dist/.nojekyll
+          test -f dist/downloads/Coach-Magic.apk
+          ls -lh dist/downloads/Coach-Magic.apk
 
-      - name: Deploy to gh-pages branch
+      - name: APK A TELECHARGER ICI
+        uses: actions/upload-artifact@v4
+        with:
+          name: APK-A-TELECHARGER-ICI-Coach-Magic
+          path: dist/downloads/Coach-Magic.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publier le site et le lien direct APK
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages
-          keep_files: true
+          force_orphan: true
