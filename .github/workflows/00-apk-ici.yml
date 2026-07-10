@@ -6,11 +6,15 @@ on:
     branches: ["main"]
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: coach-magic-apk
+  cancel-in-progress: true
 
 jobs:
   creer-apk:
-    name: TELECHARGER APK ICI
+    name: CREER ET PUBLIER COACH MAGIC APK
     runs-on: ubuntu-latest
     steps:
       - name: Recuperer le projet
@@ -45,15 +49,43 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Mettre l APK dans un dossier clair
+      - name: Preparer le fichier APK
         run: |
           mkdir -p TELECHARGER-APK-ICI
           cp android/app/build/outputs/apk/debug/app-debug.apk TELECHARGER-APK-ICI/Coach-Magic.apk
-          ls -la TELECHARGER-APK-ICI
+          test -f TELECHARGER-APK-ICI/Coach-Magic.apk
+          ls -lh TELECHARGER-APK-ICI/Coach-Magic.apk
 
-      - name: APK A TELECHARGER ICI
+      - name: Publier l artifact APK
         uses: actions/upload-artifact@v4
         with:
           name: APK-A-TELECHARGER-ICI-Coach-Magic
           path: TELECHARGER-APK-ICI/Coach-Magic.apk
           if-no-files-found: error
+
+      - name: Mettre a jour le tag de la derniere version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f coach-magic-latest
+          git push origin -f coach-magic-latest
+
+      - name: Publier l APK dans une Release GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: coach-magic-latest
+          name: Coach Magic APK - Derniere version
+          body: |
+            APK Android de Coach Magic.
+            Appuie sur Coach-Magic.apk dans les fichiers de cette release pour le telecharger.
+          files: TELECHARGER-APK-ICI/Coach-Magic.apk
+          make_latest: true
+
+      - name: Publier un lien direct sur GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./TELECHARGER-APK-ICI
+          publish_branch: gh-pages
+          destination_dir: downloads
+          keep_files: true
