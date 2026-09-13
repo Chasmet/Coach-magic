@@ -1,4 +1,4 @@
-name: APK + Site - OUVRIR ICI
+name: APK + Site + Mise a jour
 
 on:
   workflow_dispatch:
@@ -12,64 +12,67 @@ concurrency:
   group: pages-and-apk
   cancel-in-progress: true
 
+env:
+  VERSION_NAME: 1.0.${{ github.run_number }}
+  VERSION_CODE: ${{ github.run_number }}
+
 jobs:
   build-and-deploy:
-    name: CREER APK ET PUBLIER LE SITE
+    name: CREER APK + RELEASE + SITE
     runs-on: ubuntu-latest
     steps:
       - name: Recuperer le projet
         uses: actions/checkout@v4
-
       - name: Installer Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
       - name: Installer Java Android
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-
       - name: Installer les dependances
         run: npm install
-
       - name: Preparer les fichiers web
         run: npm run prepare:web
-
       - name: Creer le projet Android
         run: npx cap add android
-
       - name: Synchroniser Android
         run: npx cap sync android
-
+      - name: Appliquer le numero de version Android
+        run: node scripts/patch-android-version.js
       - name: Construire Coach Magic APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-
       - name: Preparer le site et le fichier APK
         run: |
           rm -rf dist
           mkdir -p dist/downloads
-          cp index.html dist/index.html
-          cp manifest.webmanifest dist/manifest.webmanifest
-          cp service-worker.js dist/service-worker.js
-          cp icon.svg dist/icon.svg
+          cp -r www/. dist/
           cp android/app/build/outputs/apk/debug/app-debug.apk dist/downloads/Coach-Magic.apk
           touch dist/.nojekyll
           test -f dist/downloads/Coach-Magic.apk
           ls -lh dist/downloads/Coach-Magic.apk
-
       - name: APK A TELECHARGER ICI
         uses: actions/upload-artifact@v4
         with:
-          name: APK-A-TELECHARGER-ICI-Coach-Magic
+          name: Coach-Magic-${{ env.VERSION_NAME }}
           path: dist/downloads/Coach-Magic.apk
           if-no-files-found: error
           retention-days: 30
-
+      - name: Creer la Release GitHub versionnee
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION_NAME }}
+          name: Coach Magic v${{ env.VERSION_NAME }}
+          body: |
+            Version Coach Magic ${{ env.VERSION_NAME }}.
+            L application peut maintenant verifier automatiquement cette Release depuis le menu Reglages.
+          files: dist/downloads/Coach-Magic.apk
+          make_latest: true
       - name: Publier le site et le lien direct APK
         uses: peaceiris/actions-gh-pages@v3
         with:

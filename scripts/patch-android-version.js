@@ -1,0 +1,10 @@
+const fs = require('fs');
+const path = require('path');
+const file = path.join(process.cwd(), 'android', 'app', 'build.gradle');
+const versionName = process.env.VERSION_NAME || '1.0.1';
+const versionCode = Number(process.env.VERSION_CODE || '2');
+let text = fs.readFileSync(file, 'utf8');
+if (!/versionCode\s+\d+/.test(text) || !/versionName\s+["'][^"']+["']/.test(text)) throw new Error('Android version fields not found');
+text = text.replace(/versionCode\s+\d+/, `versionCode ${versionCode}`).replace(/versionName\s+["'][^"']+["']/, `versionName "${versionName}"`);
+fs.writeFileSync(file, text);
+console.log(`Android version set to ${versionName} (${versionCode})`);
